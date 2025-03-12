@@ -1,0 +1,45 @@
+FilledButton(
+                            onPressed: () async {
+                              final Uint8List decodedBytes =
+                                  base64Decode(baseimg);
+
+                              // Decode the image
+                              img.Image image = img.decodeImage(
+                                  Uint8List.fromList(decodedBytes))!;
+
+                              image = img.drawString(
+                                image,
+                                "NSLFC",
+                                font: img.arial14,
+                                x: 0,
+                                y: image.height - img.arial48.size,
+                              );
+
+                              final AndroidNotificationDetails
+                                  androidNotificationDetails =
+                                  AndroidNotificationDetails(
+                                'channel_id',
+                                'channel_name',
+                                channelDescription: 'Your channel description',
+                                // largeIcon: ByteArrayAndroidBitmap(
+                                //     Uint8List.fromList(img.encodePng(image))),
+                                styleInformation: BigPictureStyleInformation(
+                                  ByteArrayAndroidBitmap(
+                                      Uint8List.fromList(img.encodePng(image))),
+                                  contentTitle: 'Notification Title',
+                                  summaryText: 'Notification with image',
+                                ),
+                              );
+
+                              final NotificationDetails notificationDetails =
+                                  NotificationDetails(
+                                      android: androidNotificationDetails);
+
+                              await FlutterLocalNotificationsPlugin().show(
+                                0,
+                                ' Title',
+                                ' Body',
+                                notificationDetails,
+                              );
+                            },
+                            child: const Text("Send"))
