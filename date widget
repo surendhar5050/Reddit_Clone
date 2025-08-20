@@ -1,0 +1,77 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:promis/core/extensions/datetime_extensions.dart';
+import 'package:promis/core/helper/app_helper.dart';
+
+class DatePickerField extends ConsumerWidget {
+  final String label;
+  final StateProvider<String> provider;
+  final String? Function(String?)? validator;
+
+  const DatePickerField({
+    super.key,
+    required this.label,
+    required this.provider,
+    this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedDate = ref.watch(provider);
+
+    return FormField<String>(
+      validator: validator,
+      initialValue: selectedDate,
+      builder: (formState) {
+        return InkWell(
+          onTap: () async {
+            final initialDate = selectedDate.isNotEmpty ? DateFormat("dd/MM/yyyy").parse(selectedDate) : DateTime.now();
+
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: initialDate,
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2100),
+            );
+
+            if (picked != null) {
+              final time = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.now(),
+              );
+
+              if (time != null) {
+                final newValue = DateTime(
+                  picked.year,
+                  picked.month,
+                  picked.day,
+                  time.hour,
+                  time.minute,
+                ).toStringObj(format: "dd/MM/yyyy HH:mm");
+
+                ref.read(provider.notifier).state = newValue;
+                formState.didChange(newValue); // ✅ update form validation
+              } else {
+                AppHelper.showSnackBar(
+                  context: context,
+                  message: "Time is not selected",
+                );
+              }
+            }
+          },
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: label,
+              border: const OutlineInputBorder(),
+              errorText: formState.errorText, // ✅ show validation error
+            ),
+            child: Text(
+              selectedDate.isEmpty ? "Select date & time" : selectedDate,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
